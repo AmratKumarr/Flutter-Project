@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() {
+  runApp(const WeatherApp());
+}
+
+class WeatherApp extends StatelessWidget {
+  const WeatherApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: WeatherHome(),
+    );
+  }
+}
+
+class WeatherHome extends StatefulWidget {
+  @override
+  _WeatherHomeState createState() => _WeatherHomeState();
+}
+
+class _WeatherHomeState extends State<WeatherHome> {
+  String _weatherData = "Loading...";
+
+  // Function to fetch weather data
+  Future<void> fetchWeather() async {
+    const apiKey = 'YOUR_API_KEY';
+    const city = 'London'; // Replace with dynamic city input if needed
+    final url =
+        'https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$apiKey&units=metric';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          _weatherData = "City: ${data['name']}\n"
+              "Temp: ${data['main']['temp']}°C\n"
+              "Condition: ${data['weather'][0]['description']}";
+        });
+      } else {
+        setState(() {
+          _weatherData = "Error fetching weather data";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _weatherData = "Error: $e";
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Weather App'),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            _weatherData,
+            style: const TextStyle(fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+}
